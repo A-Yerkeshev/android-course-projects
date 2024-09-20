@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Number guessing game</string>
+    <string name="input_number">Guess a number</string>
+    <string name="ok">Ok</string>
+    <string name="range">Input a number between %1$d and %2$d.</string>
+    <string name="invalid_input">Please, provide a valid number between %1$d and %2$d.</string>
+    <string name="low">Number is too small.</string>
+    <string name="high">Number is too big.</string>
+    <string name="hit">Number is correct, congratulations!</string>
+</resources>
