@@ -1,5 +1,6 @@
 package com.example.lotto
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.util.Range
@@ -23,6 +24,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Recomposer
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +37,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import com.example.lotto.ui.theme.LottoTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +48,7 @@ class MainActivity : ComponentActivity() {
             LottoTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
+                        model = LottoViewModel(),
                         name = "Android",
                         modifier = Modifier.padding(innerPadding)
                     )
@@ -52,19 +58,52 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+class Lotto(val range: IntRange = 1..40) {
+    private val secret = range.toList().shuffled().take(7)
+    fun check(guess: List<Int>): Int {
+        return guess.intersect(secret).size
+    }
+}
+
+class LottoViewModel : ViewModel() {
+    private val range: IntRange = 1..40
+    private val lotto: Lotto = Lotto(range)
+
+    private val _numbers = MutableStateFlow(range.toList())
+    var numbers = _numbers.asStateFlow()
+
+    private val _clicked = MutableStateFlow(listOf<Int>())
+    var clicked = _clicked.asStateFlow()
+
+    fun updNumbers(numbers: List<Int>) {
+        _numbers.value = numbers
+    }
+
+    fun updClicked(clicked: List<Int>) {
+        _clicked.value = clicked
+}
+
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    var numbers by rememberSaveable { mutableStateOf((1..80).toList()) }
-    var clicked by rememberSaveable { mutableStateOf(listOf<Int>()) }
+fun Greeting(model: LottoViewModel, name: String, modifier: Modifier = Modifier) {
+    var result by rememberSaveable { mutableStateOf("") }
 
     Column {
         Spacer(modifier = Modifier.padding(32.dp))
-        Text("You selected: ${clicked.toString()}")
+        Text("You selected: ${model.clicked}")
+        Button({
+            if (model.clicked.value.size < 7 ) {
+                result = "Choose 7 numbers first"
+                return@Button
+            }
+
+
+        }) {Text("Check")}
+        Text(result)
         Spacer(modifier = Modifier.padding(16.dp))
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 64.dp)
         ) {
-            items(numbers) { n ->
+            items(model.numbers.value) { n ->
                 Log.d("XXX", "item $n")
 
                 Button(
@@ -74,24 +113,19 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
                     ),
                     onClick = {
                         Log.d("XXX", "$n clicked")
-                        numbers -= n
-                        clicked += n
-                        Log.d("XXX", numbers.toString())
+                        if (model.clicked.value.size < 7) {
+                            model.updNumbers(model.numbers.value - n)
+                            model.updClicked(model.clicked.value + n)
+                        }
+                        Log.d("XXX", model.numbers.toString())
                     },
                     modifier = Modifier
                         .height(64.dp)
                         .width(64.dp)) {
-                    Text("$n")
+                        Text("$n")
+                    }
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    LottoTheme {
-        Greeting("Android")
     }
 }
