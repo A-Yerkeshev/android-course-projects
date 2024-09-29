@@ -1,5 +1,6 @@
 package com.example.eduskunta
 
+import com.example.eduskunta.db.ParliamentMember
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -23,8 +24,8 @@ object NetworkAPI {
 
 interface ApiService {
     @GET("seating.json")
-    fun loadMainData(): Call<List<ParliamentMemberJSON>>?
+    fun loadMainData(): Call<List<ParliamentMember>>?
 
     @GET("extras.json")
-    fun loadExtraData(): Call<List<ParliamentMemberJSON>>?
+    fun loadExtraData(): Call<List<ParliamentMember>>?
 }

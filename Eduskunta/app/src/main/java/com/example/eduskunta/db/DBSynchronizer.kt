@@ -1,13 +1,13 @@
-package com.example.eduskunta
+package com.example.eduskunta.db
 
 import android.content.Context
 import android.util.Log
-import androidx.work.OneTimeWorkRequest
+import androidx.room.Room
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import java.lang.Thread.sleep
+import com.example.eduskunta.NetworkAPI
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
@@ -25,9 +25,15 @@ object DBSynchronizer {
 // This class fetches data from the server and saves it to local database
 class DBWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
     override fun doWork(): Result {
+        val db = Room.databaseBuilder(
+            applicationContext,
+            Database::class.java, "eduskunta-db"
+        ).build()
+        val dao = db.memberDao()
+
         try {
             thread {
-                var parliamentMembers: List<ParliamentMemberJSON>? = NetworkAPI.apiService.loadMainData()?.execute()?.body()
+                var parliamentMembers: List<ParliamentMember>? = NetworkAPI.apiService.loadMainData()?.execute()?.body()
                 if (parliamentMembers == null) {
                     throw Exception("Failed to fetch main data")
                 }
@@ -38,7 +44,7 @@ class DBWorker(context: Context, workerParams: WorkerParameters) : Worker(contex
                 }
 
                 // Add extra data to parliament members' list
-                parliamentMembers = parliamentMembers.map { memberData1: ParliamentMemberJSON ->
+                parliamentMembers = parliamentMembers.map { memberData1: ParliamentMember ->
                     val memberData2 = extraData.find { it.hetekaId == memberData1.hetekaId }
                     if (memberData2 != null) {
                         return@map memberData1.copy(
@@ -51,10 +57,19 @@ class DBWorker(context: Context, workerParams: WorkerParameters) : Worker(contex
                     }
                 }
 
-                Log.d("DBG", parliamentMembers.toString())
+                dao.insertAll(parliamentMembers)
+                Thread.sleep(1000)
+                Log.d("DBG", dao.getAll().toString())
+            }
+
+            if(db.isOpen) {
+                db.openHelper.close()
             }
             return Result.success()
         } catch (e: Exception) {
+            if(db.isOpen) {
+                db.openHelper.close()
+            }
             return Result.failure()
         }
     }
