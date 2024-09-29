@@ -1,7 +1,10 @@
 package com.example.eduskunta
 
+import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.GET
+import kotlin.concurrent.thread
 
 // 27.09.2024 by Arman Yerkeshev 2214297
 // This is a singleton class, responsible for sending and receiving HTTP requests
@@ -13,6 +16,15 @@ object NetworkAPI {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+    val apiService: ApiService by lazy {
+        retrofit.create(ApiService::class.java)
+    }
+}
 
+interface ApiService {
+    @GET("seating.json")
+    fun loadMainData(): Call<List<ParliamentMemberJSON>>?
 
+    @GET("extras.json")
+    fun loadExtraData(): Call<List<ParliamentMemberJSON>>?
 }
