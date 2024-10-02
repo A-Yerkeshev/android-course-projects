@@ -22,6 +22,8 @@ object NetworkAPI {
     }
 }
 
+// 30.09.2024 by Arman Yerkeshev 2214297
+// Defines possible interactions the server
 interface ApiService {
     @GET("seating.json")
     fun loadMainData(): Call<List<ParliamentMember>>?

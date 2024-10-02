@@ -8,15 +8,18 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.example.eduskunta.NetworkAPI
+import com.example.eduskunta.PMApplication
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 // 28.09.2024 by Arman Yerkeshev 2214297
 // This is class is responsible for periodically synchronizing the local database with the server
 object DBSynchronizer {
-    fun start(context: Context) {
+    fun start() {
         val uploadRequest = PeriodicWorkRequestBuilder<DBWorker>(15, TimeUnit.MINUTES).build()
-        val workManager = WorkManager.getInstance(context)
+        val workManager = WorkManager.getInstance(PMApplication.appContext)
         workManager.enqueue(uploadRequest)
     }
 }
@@ -25,14 +28,11 @@ object DBSynchronizer {
 // This class fetches data from the server and saves it to local database
 class DBWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
     override fun doWork(): Result {
-        val db = Room.databaseBuilder(
-            applicationContext,
-            Database::class.java, "eduskunta-db"
-        ).build()
+        val db = PMDatabase.getInstance()
         val dao = db.memberDao()
 
         try {
-            thread {
+            GlobalScope.launch {
                 var parliamentMembers: List<ParliamentMember>? = NetworkAPI.apiService.loadMainData()?.execute()?.body()
                 if (parliamentMembers == null) {
                     throw Exception("Failed to fetch main data")
@@ -58,18 +58,11 @@ class DBWorker(context: Context, workerParams: WorkerParameters) : Worker(contex
                 }
 
                 dao.insertAll(parliamentMembers)
-                Thread.sleep(1000)
-                Log.d("DBG", dao.getAll().toString())
+                Log.d("DB", "Data synchronized with remote server")
             }
 
-            if(db.isOpen) {
-                db.openHelper.close()
-            }
             return Result.success()
         } catch (e: Exception) {
-            if(db.isOpen) {
-                db.openHelper.close()
-            }
             return Result.failure()
         }
     }
