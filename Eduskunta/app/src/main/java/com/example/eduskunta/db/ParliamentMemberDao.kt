@@ -5,12 +5,8 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
+import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 // 29.09.2024 by Arman Yerkeshev 2214297
 // Data Access Object for ParliamentMember class
@@ -26,8 +22,11 @@ interface ParliamentMemberDao {
     fun getRandom(): Flow<ParliamentMember>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAll(members: List<ParliamentMember>)
+    suspend fun insertAll(members: List<ParliamentMember>)
+
+    @Update(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun update(member: ParliamentMember)
 
     @Delete
-    fun delete(member: ParliamentMember)
+    suspend fun delete(member: ParliamentMember)
 }

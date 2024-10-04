@@ -16,6 +16,8 @@ data class ParliamentMember(
     @ColumnInfo(name = "picture_url") val pictureUrl: String,
     @ColumnInfo(name = "twitter") var twitter: String? = null,
     @ColumnInfo(name = "born_year") var bornYear: String? = null,
-    @ColumnInfo(name = "constituency") var constituency: String? = null
+    @ColumnInfo(name = "constituency") var constituency: String? = null,
+    @ColumnInfo(name = "rating") var rating: String? = null,
+    @ColumnInfo(name = "notes") var notes: String? = null
 ) {
 }

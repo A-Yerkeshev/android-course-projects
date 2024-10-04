@@ -2,7 +2,6 @@ package com.example.eduskunta.db
 
 import android.content.Context
 import android.util.Log
-import androidx.room.Room
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
@@ -12,7 +11,6 @@ import com.example.eduskunta.PMApplication
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
 
 // 28.09.2024 by Arman Yerkeshev 2214297
 // This is class is responsible for periodically synchronizing the local database with the server

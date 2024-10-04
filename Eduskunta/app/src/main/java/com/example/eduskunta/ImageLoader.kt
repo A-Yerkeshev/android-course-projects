@@ -3,13 +3,11 @@ package com.example.eduskunta
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
-import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
 
@@ -19,8 +17,6 @@ val SERVER_PATHNAME = "https://avoindata.eduskunta.fi/"
 // This class is responsible for loading images from the server, employing caching mechanism
 object ImageLoader {
     fun getImage(urlString: String?): ImageBitmap? {
-        val context = PMApplication.appContext
-
         if (urlString == null) {
             return null
         }

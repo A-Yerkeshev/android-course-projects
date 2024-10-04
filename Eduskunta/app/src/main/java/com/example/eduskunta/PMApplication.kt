@@ -2,7 +2,6 @@ package com.example.eduskunta
 
 import android.app.Application
 import android.content.Context
-import androidx.lifecycle.MutableLiveData
 import com.example.eduskunta.db.DBSynchronizer
 
 // 30.09.2024 by Arman Yerkeshev 2214297
