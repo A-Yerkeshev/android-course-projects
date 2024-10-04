@@ -64,9 +64,10 @@ class MainActivity : ComponentActivity() {
 
             EduskuntaTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    NavHost(navController = navController, startDestination = Screens.Info.name) {
-                        composable(route = Screens.Info.name) {
-                            MemberView(navController, null, modifier = Modifier.padding(innerPadding))
+                    NavHost(navController = navController, startDestination = Screens.Info.name + "/") {
+                        composable(route = Screens.Info.name + "/{hetekaId}?") {
+                            val hetekaId: Int? = it.arguments?.getString("hetekaId")?.toIntOrNull()
+                            MemberView(navController, hetekaId, modifier = Modifier.padding(innerPadding))
                         }
                     }
                 }
@@ -108,7 +109,10 @@ fun MemberView(nav: NavController, hetekaId: Int? = null, modifier: Modifier = M
                     .fillMaxWidth()
             ) {
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        val prevId: Int? = if (idx == 0) members.first()?.hetekaId else members.getOrNull(idx - 1)?.hetekaId
+                        nav.navigate(Screens.Info.name + "/$prevId")
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor = COLORS["primary"]!!)
                 ) {
                     Text(
@@ -118,7 +122,10 @@ fun MemberView(nav: NavController, hetekaId: Int? = null, modifier: Modifier = M
                     )
                 }
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        val nextId: Int? = members.getOrNull((idx + 1).mod(members.size))?.hetekaId
+                        nav.navigate(Screens.Info.name + "/$nextId")
+                    },
                     colors = ButtonDefaults.buttonColors(containerColor =
                         Color(ContextCompat.getColor(appContext, R.color.primary)))
                 ) {
@@ -143,13 +150,13 @@ fun MemberView(nav: NavController, hetekaId: Int? = null, modifier: Modifier = M
                 }
             }
             Text(
-                text = "${member?.firstname} ${member?.lastname} (${member?.bornYear ?: ""})",
+                text = "${member?.firstname ?:""} ${member?.lastname ?: ""} (${member?.bornYear ?: ""})",
                 fontSize = 28.sp,
                 modifier = Modifier
                     .padding(16.dp)
             )
             Text(
-                text = "Party: ${member?.party}, Constituency: ${member?.constituency ?: "unknown"}",
+                text = "Party: ${member?.party ?: ""}, Constituency: ${member?.constituency ?: ""}",
                 fontSize = 24.sp,
                 modifier = Modifier
                     .padding(16.dp)

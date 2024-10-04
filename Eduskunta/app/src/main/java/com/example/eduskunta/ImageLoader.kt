@@ -29,13 +29,18 @@ object ImageLoader {
         // - if it was - decode file
         // - if it wasn't - download it and save to cache
         val filename: String = urlString.substringAfterLast("/")
-        if (filename in context.fileList()) {
+
+        try {
             return BitmapFactory.decodeFile(filename).asImageBitmap()
-        } else {
+        } catch (e: Exception) {
             val url = URL(SERVER_PATHNAME + urlString)
             val res: Bitmap? = runBlocking {
                 val deferred = async(Dispatchers.IO) {
-                    BitmapFactory.decodeStream(url.openConnection().getInputStream())
+                    try {
+                        return@async BitmapFactory.decodeStream(url.openConnection().getInputStream())
+                    } catch (e: Exception) {
+                        return@async null
+                    }
                 }
                 return@runBlocking deferred.await()
             }
