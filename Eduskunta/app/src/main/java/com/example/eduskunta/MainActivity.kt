@@ -21,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -51,6 +53,8 @@ val COLORS = mapOf(
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val viewModel = PMViewModel()
+
         enableEdgeToEdge()
         setContent {
             val navController = rememberNavController()
@@ -60,7 +64,8 @@ class MainActivity : ComponentActivity() {
                     NavHost(navController = navController, startDestination = Screens.Info.name + "/") {
                         composable(route = Screens.Info.name + "/{hetekaId}?") {
                             val hetekaId: Int? = it.arguments?.getString("hetekaId")?.toIntOrNull()
-                            MemberView(navController, hetekaId = hetekaId, modifier = Modifier.padding(innerPadding))
+                            viewModel.setMember(hetekaId)
+                            MemberView(navController, viewModel, hetekaId = hetekaId, modifier = Modifier.padding(innerPadding))
                         }
                     }
                 }
@@ -78,13 +83,11 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MemberView(nav: NavController, modifier: Modifier = Modifier, hetekaId: Int? = null) {
-    val viewModel = PMViewModel(hetekaId)
-    val member: ParliamentMember? = viewModel.member.collectAsState(initial = null).value
-    val nextMember: ParliamentMember? = viewModel.nextMember.collectAsState(initial = null).value
-    val previousMember: ParliamentMember? = viewModel.previousMember.collectAsState(initial = null).value
-    viewModel.notes = member?.notes ?: ""
-    val image = ImageLoader.getImage(member?.pictureUrl)
+fun MemberView(nav: NavController, viewModel: PMViewModel, modifier: Modifier = Modifier, hetekaId: Int? = null) {
+    val member: State<ParliamentMember?> = viewModel.member.collectAsState(initial = null)
+    val nextMember: State<ParliamentMember?> = viewModel.nextMember.collectAsState(initial = null)
+    val previousMember: State<ParliamentMember?> = viewModel.previousMember.collectAsState(initial = null)
+    val image = ImageLoader.getImage(member.value?.pictureUrl)
 
     Column(modifier = Modifier.padding(0.dp, 62.dp, 0.dp, 0.dp)) {
         Card(
@@ -101,7 +104,7 @@ fun MemberView(nav: NavController, modifier: Modifier = Modifier, hetekaId: Int?
             ) {
                 Button(
                     onClick = {
-                        nav.navigate(Screens.Info.name + "/${previousMember?.hetekaId}")
+                        nav.navigate(Screens.Info.name + "/${previousMember.value?.hetekaId}")
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = COLORS["primary"]!!)
                 ) {
@@ -113,7 +116,7 @@ fun MemberView(nav: NavController, modifier: Modifier = Modifier, hetekaId: Int?
                 }
                 Button(
                     onClick = {
-                        nav.navigate(Screens.Info.name + "/${nextMember?.hetekaId}")
+                        nav.navigate(Screens.Info.name + "/${nextMember.value?.hetekaId}")
                     },
                     colors = ButtonDefaults.buttonColors(containerColor =
                         Color(ContextCompat.getColor(appContext, R.color.primary)))
@@ -134,25 +137,25 @@ fun MemberView(nav: NavController, modifier: Modifier = Modifier, hetekaId: Int?
                 ) {
                     Image(
                         bitmap = image,
-                        contentDescription = "${member?.firstname} ${member?.lastname}"
+                        contentDescription = "${member.value?.firstname} ${member.value?.lastname}"
                     )
                 }
             }
             Text(
-                text = "${member?.firstname ?:""} ${member?.lastname ?: ""} (${member?.bornYear ?: ""})",
+                text = "${member.value?.firstname ?:""} ${member.value?.lastname ?: ""} (${member.value?.bornYear ?: ""})",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .padding(16.dp, 0.dp)
             )
             Text(
-                text = "Party: ${member?.party ?: ""}, Constituency: ${member?.constituency ?: ""}",
+                text = "Party: ${member.value?.party ?: ""}, Constituency: ${member.value?.constituency ?: ""}",
                 fontSize = 24.sp,
                 modifier = Modifier
                     .padding(16.dp, 0.dp)
             )
             Text(
-                text = "Rating: ${member?.rating ?: ""}",
+                text = "Rating: ${member.value?.rating ?: ""}",
                 fontSize = 24.sp,
                 modifier = Modifier
                     .padding(16.dp, 0.dp)
@@ -174,8 +177,8 @@ fun MemberView(nav: NavController, modifier: Modifier = Modifier, hetekaId: Int?
                     Button(
                         colors = ButtonDefaults.buttonColors(containerColor = COLORS["primary"]!!),
                         onClick = {
-                            member?.rating = i.toString()
-                            viewModel.updateMember(member!!)
+                            member.value?.rating = i.toString()
+                            viewModel.updateMember(member.value!!)
                         }
                     ) {
                         Text(
@@ -187,15 +190,14 @@ fun MemberView(nav: NavController, modifier: Modifier = Modifier, hetekaId: Int?
                 }
             }
             TextField(
-                value = viewModel.notes,
+                value = member.value?.notes ?: "",
                 modifier = Modifier
                     .padding(16.dp, 0.dp, 16.dp, 0.dp)
                     .fillMaxWidth(),
                 textStyle = TextStyle.Default.copy(fontSize = 24.sp),
                 onValueChange = {
-                    viewModel.notes = it
-                    member?.notes = it
-                    viewModel.updateMember(member!!)
+                    member.value?.notes = it
+                    viewModel.updateMember(member.value!!)
                 }
             )
         }
