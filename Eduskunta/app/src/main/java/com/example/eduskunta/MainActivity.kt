@@ -1,6 +1,7 @@
 package com.example.eduskunta
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -78,13 +79,10 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MemberView(nav: NavController, modifier: Modifier = Modifier, hetekaId: Int? = null) {
-    val viewModel = PMViewModel()
-    val members = viewModel.members.collectAsState(initial = listOf()).value
-    var idx: Int = members.indexOfFirst { it.hetekaId == hetekaId }
-    if (idx == -1) {
-        idx = (0..members.size).random()
-    }
-    val member: ParliamentMember? = members.getOrNull(idx)
+    val viewModel = PMViewModel(hetekaId)
+    val member: ParliamentMember? = viewModel.member.collectAsState(initial = null).value
+    val nextMember: ParliamentMember? = viewModel.nextMember.collectAsState(initial = null).value
+    val previousMember: ParliamentMember? = viewModel.previousMember.collectAsState(initial = null).value
     viewModel.notes = member?.notes ?: ""
     val image = ImageLoader.getImage(member?.pictureUrl)
 
@@ -103,8 +101,7 @@ fun MemberView(nav: NavController, modifier: Modifier = Modifier, hetekaId: Int?
             ) {
                 Button(
                     onClick = {
-                        val prevId: Int? = if (idx == 0) members.first().hetekaId else members.getOrNull(idx - 1)?.hetekaId
-                        nav.navigate(Screens.Info.name + "/$prevId")
+                        nav.navigate(Screens.Info.name + "/${previousMember?.hetekaId}")
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = COLORS["primary"]!!)
                 ) {
@@ -116,8 +113,7 @@ fun MemberView(nav: NavController, modifier: Modifier = Modifier, hetekaId: Int?
                 }
                 Button(
                     onClick = {
-                        val nextId: Int? = members.getOrNull((idx + 1).mod(members.size))?.hetekaId
-                        nav.navigate(Screens.Info.name + "/$nextId")
+                        nav.navigate(Screens.Info.name + "/${nextMember?.hetekaId}")
                     },
                     colors = ButtonDefaults.buttonColors(containerColor =
                         Color(ContextCompat.getColor(appContext, R.color.primary)))
