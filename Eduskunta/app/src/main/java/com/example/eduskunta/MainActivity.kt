@@ -1,7 +1,6 @@
 package com.example.eduskunta
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -30,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -65,7 +63,7 @@ class MainActivity : ComponentActivity() {
                         composable(route = Screens.Info.name + "/{hetekaId}?") {
                             val hetekaId: Int? = it.arguments?.getString("hetekaId")?.toIntOrNull()
                             viewModel.setMember(hetekaId)
-                            MemberView(navController, viewModel, hetekaId = hetekaId, modifier = Modifier.padding(innerPadding))
+                            MemberView(navController, viewModel, modifier = Modifier.padding(innerPadding))
                         }
                     }
                 }
@@ -83,7 +81,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MemberView(nav: NavController, viewModel: PMViewModel, modifier: Modifier = Modifier, hetekaId: Int? = null) {
+fun MemberView(nav: NavController, viewModel: PMViewModel, modifier: Modifier = Modifier) {
     val member: State<ParliamentMember?> = viewModel.member.collectAsState(initial = null)
     val nextMember: State<ParliamentMember?> = viewModel.nextMember.collectAsState(initial = null)
     val previousMember: State<ParliamentMember?> = viewModel.previousMember.collectAsState(initial = null)

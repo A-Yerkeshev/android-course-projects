@@ -1,23 +1,16 @@
 package com.example.eduskunta
 
-import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.eduskunta.db.PMDatabase
 import com.example.eduskunta.db.ParliamentMember
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.launch
 
 // 30.09.2024 by Arman Yerkeshev 2214297
 // Class for loading parliament members from database into application for later use by the UI
-//class PMViewModel(private val hetekaid: Int?): ViewModel() {
 class PMViewModel(): ViewModel() {
     private val dao = PMDatabase.getInstance().memberDao()
     val members: Flow<List<ParliamentMember>> = dao.getAll()
@@ -32,6 +25,9 @@ class PMViewModel(): ViewModel() {
         viewModelScope.launch {
             if (updatedMember != null) {
                 dao.update(updatedMember)
+                member = members.transform {
+                    emit(updatedMember)
+                }
             }
         }
     }
